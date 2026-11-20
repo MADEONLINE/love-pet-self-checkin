@@ -1,0 +1,1012 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Love Pet Check-in</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: app a tre viste (totem tablet, accoglienza, telefono cliente) sotto una barra fissa.
+   Stile dalla skill landing-accoglienza-triage-cliente: Figtree, verde petrolio come colore principale,
+   triage a tre colori su card bianche con pallino, rosso scuro per le emergenze. */
+:root{
+  --bg:#F5F9F8; --surface:#FFFFFF; --surface-2:#EAF4F2; --ink:#14201F; --muted:#4F6462; --line:#D2E2DF;
+  --accent:#0D5C5A; --accent-ink:#FFFFFF; --accent-soft:#D8ECE9;
+  --alert:#7F1D1D; --alert-ink:#FFFFFF; --alert-fg:#7F1D1D; --alert-soft:#F8E6E6;
+  --red:#C62828; --red-soft:#FBE9E9;
+  --yellow:#F5C400; --yellow-soft:#FDF5D3; --yellow-ink:#2A2100;
+  --green:#2E7D32; --green-soft:#E5F2E6;
+  --warn:#9A5B00; --warn-soft:#FCEFD9;
+  --shadow:0 1px 2px rgba(13,92,90,.06),0 8px 24px rgba(13,92,90,.07);
+  --f-display:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r-lg:22px; --r-md:14px; --r-sm:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1514; --surface:#12201F; --surface-2:#18302E; --ink:#E5F0EE; --muted:#9BB4B1; --line:#284341;
+    --accent:#5EC2BB; --accent-ink:#06201F; --accent-soft:#1A3B39;
+    --alert:#8E2525; --alert-ink:#FFFFFF; --alert-fg:#FF8A80; --alert-soft:#3A1717;
+    --red:#EF5350; --red-soft:#3A1818;
+    --yellow:#F5C400; --yellow-soft:#332A08; --yellow-ink:#2A2100;
+    --green:#5DBB63; --green-soft:#142B16;
+    --warn:#F2A950; --warn-soft:#362710;
+    --shadow:0 1px 2px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#0B1514; --surface:#12201F; --surface-2:#18302E; --ink:#E5F0EE; --muted:#9BB4B1; --line:#284341;
+    --accent:#5EC2BB; --accent-ink:#06201F; --accent-soft:#1A3B39;
+    --alert:#8E2525; --alert-ink:#FFFFFF; --alert-fg:#FF8A80; --alert-soft:#3A1717;
+    --red:#EF5350; --red-soft:#3A1818;
+    --yellow:#F5C400; --yellow-soft:#332A08; --yellow-ink:#2A2100;
+    --green:#5DBB63; --green-soft:#142B16;
+    --warn:#F2A950; --warn-soft:#362710;
+    --shadow:0 1px 2px rgba(0,0,0,.35);
+    color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Barra superiore */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.tb-in{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;max-width:1280px;margin:0 auto;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.tb-brand{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:1.08rem;font-weight:700}
+.tb-brand svg{fill:var(--accent);flex:none}
+.tb-brand span.light{font-weight:600;color:var(--muted)}
+.proto{font-family:var(--f-body);font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+.seg{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:12px;margin-left:auto}
+.seg a{padding:8px 14px;border-radius:9px;text-decoration:none;color:var(--muted);font-weight:700;font-size:.95rem;white-space:nowrap}
+.seg a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+@media (max-width:720px){.seg{margin-left:0;width:100%;order:3}.seg a{flex:1;text-align:center;padding:8px 4px;font-size:.88rem}}
+.wrap{max-width:1280px;margin:0 auto;padding-block:16px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.v-help{margin:0 0 16px;color:var(--muted);font-size:.92rem;max-width:80ch}
+
+/* Pulsanti */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 20px;border-radius:var(--r-md);border:2px solid transparent;font-weight:700;font-size:1.02rem;line-height:1.2;text-align:center;text-decoration:none;transition:background .15s,border-color .15s,transform .05s}
+.btn:active{transform:translateY(1px)}
+.btn-sm{min-height:38px;padding:0 12px;font-size:.88rem;border-radius:var(--r-sm);border-width:1.5px}
+.btn-xl{min-height:64px;font-size:1.15rem;padding:0 26px}
+.btn-block{width:100%}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-ghost{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--muted)}
+.btn-danger{background:var(--alert);color:var(--alert-ink)}
+.btn-danger-outline{background:transparent;border-color:var(--alert-fg);color:var(--alert-fg)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* Totem */
+.kiosk{max-width:880px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden}
+.k-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.k-brand{color:var(--muted);font-size:.98rem;line-height:1.2}
+.k-brand b{display:block;font-family:var(--f-display);color:var(--ink);font-size:1.3rem;font-weight:800}
+.k-body{padding:28px clamp(18px,4vw,44px) 32px;display:flex;flex-direction:column;gap:22px;font-size:1.08rem}
+.k-title{font-family:var(--f-display);font-weight:800;font-size:clamp(34px,5vw,52px);line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.k-lead{margin:-8px 0 0;color:var(--muted);font-size:1.2rem}
+.k-q{font-family:var(--f-display);font-weight:700;font-size:clamp(1.5rem,3.6vw,2.05rem);line-height:1.15;margin:0;text-wrap:balance}
+.k-q2{font-family:var(--f-display);font-weight:700;font-size:1.3rem;line-height:1.2;margin:0;text-wrap:balance}
+.k-hint{margin:-12px 0 0;color:var(--muted)}
+.k-prog{display:flex;align-items:center;gap:12px;font-size:.9rem;font-weight:700;color:var(--muted)}
+.k-prog .bar{flex:1;height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.k-prog .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.k-foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding-top:4px}
+.k-foot .push{margin-left:auto}
+.k-foot.stack{flex-direction:column;align-items:stretch}
+@media (max-width:560px){.k-foot{flex-direction:column-reverse;align-items:stretch}.k-foot .btn{width:100%}.k-foot .push{margin-left:0}.k-foot.stack{flex-direction:column}}
+
+.home-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px}
+.choice{display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:8px;text-align:left;padding:28px 26px;min-height:180px;border-radius:var(--r-lg);border:2px solid var(--line);background:var(--surface-2)}
+.choice:hover{border-color:var(--accent)}
+.choice.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.choice-t{font-family:var(--f-display);font-weight:800;font-size:1.7rem;line-height:1.08}
+.choice-s{font-size:1.02rem;opacity:.85}
+.home-note{margin:0;color:var(--muted);font-size:.98rem}
+
+.flags{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px}
+.flag{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;padding:14px 18px;min-height:66px;border-radius:var(--r-md);border:2px solid var(--line);background:var(--surface);font-weight:600;font-size:1.05rem;line-height:1.3}
+.flag small{display:block;font-weight:500;color:var(--muted);font-size:.86rem}
+.flag-go{flex:none;font-size:.75rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--red)}
+.flag:hover{border-color:var(--red);background:var(--red-soft)}
+
+.form{display:grid;gap:16px}
+.row2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label,.flabel{font-weight:700;font-size:1rem}
+.opt{font-weight:500;color:var(--muted);font-size:.9rem}
+.field input,.field textarea{width:100%;min-height:58px;padding:12px 16px;font-size:1.2rem;border:2px solid var(--line);border-radius:var(--r-md);background:var(--bg);color:var(--ink)}
+.field textarea{min-height:84px;resize:vertical;font-size:1.05rem}
+.field input:focus,.field textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 4px var(--accent-soft)}
+.field.err input,.field.err textarea{border-color:var(--red)}
+.err-msg{color:var(--red);font-weight:700;font-size:.92rem}
+input.big{font-size:1.7rem;letter-spacing:.05em;min-height:70px;font-variant-numeric:tabular-nums}
+.check{display:flex;gap:12px;align-items:flex-start;font-size:1rem;cursor:pointer}
+.check input{width:26px;height:26px;flex:none;accent-color:var(--accent);margin-top:2px}
+.privacy{font-size:.95rem;color:var(--muted)}
+.privacy summary{cursor:pointer;font-weight:700;color:var(--accent)}
+.privacy p{margin:8px 0 0}
+.notice{padding:12px 16px;border-radius:var(--r-md);font-weight:600;margin:0}
+.notice.ok{background:var(--green-soft)}
+.notice.warn{background:var(--warn-soft)}
+.demo-hint{margin:0;font-size:.9rem;color:var(--muted);background:var(--surface-2);border-radius:var(--r-sm);padding:8px 12px}
+
+.tiles{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr))}
+.tiles.sym{grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))}
+.tile{min-height:62px;padding:10px 14px;border-radius:var(--r-md);border:2px solid var(--line);background:var(--surface);font-weight:600;font-size:1.05rem;line-height:1.25;text-align:center}
+.tile:hover{border-color:var(--muted)}
+.tile[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:62px;height:62px;border-radius:var(--r-md);border:2px solid var(--line);background:var(--surface);font-size:1.7rem;font-weight:700;line-height:1}
+.stepper output{min-width:10ch;text-align:center;font-weight:700;font-size:1.25rem;font-variant-numeric:tabular-nums}
+.known{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--green-soft);border-radius:var(--r-md);padding:12px 14px}
+.known .tile{min-height:48px;padding:6px 18px}
+
+.lv-rosso{--lvc:var(--red);--lvs:var(--red-soft)}
+.lv-giallo{--lvc:var(--yellow);--lvs:var(--yellow-soft)}
+.lv-verde{--lvc:var(--green);--lvs:var(--green-soft)}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 9px;border-radius:999px;background:var(--surface);border:1.5px solid var(--line);color:var(--ink);font-weight:800;font-size:.85rem;letter-spacing:.02em;white-space:nowrap}
+.pill::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--lvc);flex:none}
+.code-box{display:flex;flex-direction:column;align-items:flex-start;gap:6px;background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r-md);padding:16px 18px}
+.code-box .pill{font-size:1rem;padding:6px 14px 6px 10px}
+.code-box .pill::before{width:16px;height:16px}
+.code-box p{margin:0}
+.small{font-size:.9rem;color:var(--muted)}
+
+.review{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.rv{display:flex;flex-direction:column;gap:6px;background:var(--bg);border-radius:var(--r-md);padding:14px 16px;min-width:0}
+.rv h3{margin:0;font-size:.76rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rv p{margin:0;overflow-wrap:anywhere}
+.rv .btn{align-self:flex-start;margin-top:auto}
+
+.appt{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:center;background:var(--bg);border-radius:var(--r-md);padding:18px 20px}
+.appt-time{font-family:var(--f-display);font-weight:800;font-size:2.3rem;line-height:1;color:var(--accent);font-variant-numeric:tabular-nums}
+
+.done{align-items:center;text-align:center}
+.done .code-box{align-items:center;text-align:center;width:100%;max-width:560px}
+.ticket-num{display:flex;flex-direction:column;align-items:center}
+.ticket-num span{font-size:.82rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.ticket-num b{font-family:var(--f-display);font-size:clamp(4.2rem,15vw,7.2rem);line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+.done p{margin:0;max-width:52ch}
+.done .k-foot{width:100%;justify-content:center}
+
+.kiosk.emergency{background:var(--alert);color:var(--alert-ink);border-color:var(--alert)}
+.em{padding:52px clamp(20px,5vw,56px);display:flex;flex-direction:column;gap:16px;align-items:flex-start}
+.em h1{font-family:var(--f-display);font-size:clamp(2.2rem,6vw,3.7rem);line-height:1.02;margin:0;font-weight:800;text-wrap:balance}
+.em p{margin:0;font-size:1.2rem;max-width:46ch}
+.em-eyebrow{font-weight:800;letter-spacing:.09em;text-transform:uppercase;font-size:.85rem!important}
+.btn-em{background:var(--alert-ink);color:var(--alert);min-height:60px;padding:0 34px;margin-top:10px}
+
+/* Banco */
+.desk-head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.v-title{font-family:var(--f-display);font-size:clamp(1.6rem,3vw,2.15rem);font-weight:800;margin:0;line-height:1.1}
+.v-sub{margin:2px 0 0;color:var(--muted)}
+.alarm{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;background:var(--alert);color:var(--alert-ink);padding:14px 18px;border-radius:var(--r-md);margin-bottom:10px;font-size:1.02rem}
+.alarm .btn{background:var(--alert-ink);color:var(--alert)}
+@media (prefers-reduced-motion:no-preference){.alarm{animation:pulse 1.4s ease-in-out infinite}}
+@keyframes pulse{50%{box-shadow:0 0 0 7px var(--alert-soft)}}
+.alert-soft{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;background:var(--warn-soft);border-left:6px solid var(--warn);padding:12px 16px;border-radius:var(--r-md);margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px;margin:14px 0 24px}
+.kpi{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px}
+.kpi-l{font-size:.76rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kpi-v{font-family:var(--f-display);font-weight:800;font-size:2.05rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi-s{font-size:.88rem;color:var(--muted)}
+.desk{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:980px){.desk{grid-template-columns:minmax(0,1fr)}}
+.sec-t{font-family:var(--f-display);font-size:1.18rem;font-weight:700;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.count{font-family:var(--f-body);font-size:.8rem;font-weight:700;background:var(--surface-2);border-radius:99px;padding:2px 9px;color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:10px}
+.tk{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px 18px;background:var(--surface);border:1px solid var(--line);border-left:7px solid var(--lvc);border-radius:var(--r-md);padding:14px 16px}
+.tk.is-called{background:var(--accent-soft)}
+.tk-left{display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:70px}
+.tk-num{font-family:var(--f-display);font-weight:800;font-size:1.75rem;line-height:1;font-variant-numeric:tabular-nums}
+.tk-mid{display:flex;flex-direction:column;gap:5px;min-width:0}
+.tk-pet{font-size:1rem;overflow-wrap:anywhere}
+.tk-pet b{font-size:1.12rem}
+.tk-sub{color:var(--muted);font-size:.92rem;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.82rem;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--surface-2)}
+.chip.flag-c{background:var(--red-soft);box-shadow:inset 0 0 0 1.5px var(--red)}
+.tag{display:inline-block;font-size:.74rem;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.tag-warn{background:var(--warn-soft);color:var(--ink)}
+.tag-prop{background:transparent;color:var(--ink);border:1px dashed var(--muted)}
+.tk-why{font-size:.85rem;color:var(--muted)}
+.tk-note{margin:0;font-style:italic;font-size:.95rem;overflow-wrap:anywhere}
+.tk-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.tk-wait{text-align:right;line-height:1.05}
+.tk-wait b{font-family:var(--f-display);font-size:1.75rem;font-variant-numeric:tabular-nums}
+.tk-wait small{display:block;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:800}
+.tk-wait.warn b{color:var(--warn)}
+.tk-wait.crit b{color:var(--alert-fg)}
+.lvsw{display:flex;gap:6px}
+.dot{width:30px;height:30px;border-radius:50%;border:3px solid var(--surface);background:var(--lvc);box-shadow:0 0 0 1.5px var(--line);padding:0}
+.dot[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--ink)}
+.tk-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+@media (max-width:680px){.tk{grid-template-columns:auto minmax(0,1fr)}.tk-right{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between}.tk-wait{text-align:left}}
+.side-sec{margin-bottom:24px}
+.mini{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--lvc);border-radius:var(--r-sm);padding:10px 12px;font-size:.93rem}
+.mini .grow{flex:1;min-width:0;overflow-wrap:anywhere}
+.mini q{display:block;font-style:italic;color:var(--muted)}
+.score{font-weight:800;padding:1px 8px;border-radius:6px;white-space:nowrap}
+.score.hi{background:var(--green-soft)}
+.score.mid{background:var(--yellow-soft)}
+.score.lo{background:var(--red-soft)}
+.empty{padding:26px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r-md)}
+.rules{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 16px;font-size:.92rem}
+.rules summary{font-weight:700;cursor:pointer}
+.rules ul{padding-left:18px;margin:8px 0}
+.rules li{margin:5px 0}
+.rules p{margin:6px 0 0;color:var(--muted)}
+
+/* Telefono */
+.ph-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
+.ph-pick{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;max-width:100%}
+.ph-pick label{font-weight:700}
+.ph-pick select{min-height:42px;max-width:100%;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--surface);padding:0 10px}
+.phone{width:100%;max-width:390px;min-height:620px;display:flex;flex-direction:column;gap:16px;background:var(--surface);border:10px solid var(--ink);border-radius:42px;padding:30px 22px;box-shadow:var(--shadow)}
+@media (max-width:440px){.phone{border:1px solid var(--line);border-radius:var(--r-lg);min-height:0}}
+.phone .ph-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);font-size:.82rem;color:var(--muted);text-align:center}
+.ph-eyebrow{margin:0;font-size:.76rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.phone h2{font-family:var(--f-display);font-size:1.6rem;font-weight:800;line-height:1.15;margin:0;text-wrap:balance}
+.phone p{margin:0}
+.ph-num{display:flex;align-items:baseline;justify-content:space-between;background:var(--bg);border-radius:var(--r-md);padding:14px 16px}
+.ph-num b{font-family:var(--f-display);font-size:2.7rem;line-height:1;font-variant-numeric:tabular-nums}
+.ph-big{font-family:var(--f-display);font-size:1.35rem;font-weight:700}
+.ph-turn{display:flex;flex-direction:column;gap:6px;background:var(--accent);color:var(--accent-ink);border-radius:var(--r-lg);padding:24px}
+.ph-turn b{font-family:var(--f-display);font-size:2.1rem;line-height:1.05}
+.faces{display:flex;justify-content:space-between;gap:4px}
+.face{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:2px solid transparent;border-radius:16px;padding:6px 2px;font-size:.72rem;font-weight:600;color:var(--muted)}
+.face svg{width:100%;max-width:50px;height:auto}
+.face .f{fill:var(--surface-2);stroke:var(--line);stroke-width:2}
+.face .e{fill:var(--ink)}
+.face path{fill:none;stroke:var(--ink);stroke-width:2.6;stroke-linecap:round}
+.face[aria-pressed="true"]{border-color:var(--accent);color:var(--ink)}
+.face[aria-pressed="true"] .f{fill:var(--yellow);stroke:var(--yellow)}
+.face[aria-pressed="true"] .e{fill:var(--yellow-ink)}
+.face[aria-pressed="true"] path{stroke:var(--yellow-ink)}
+.path{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.path li{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.74rem;font-weight:600;color:var(--muted);text-align:center;line-height:1.2}
+.path li span{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line);background:var(--surface);font-weight:800;font-size:.85rem}
+.path li.done span{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.path li.now{color:var(--ink)}
+.path li.now span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.faq{display:flex;flex-direction:column;gap:8px}
+.faq details{background:var(--surface-2);border-radius:var(--r-md);padding:12px 14px}
+.faq summary{font-weight:700;cursor:pointer}
+.faq p{margin:8px 0 0;font-size:.95rem}
+</style>
+
+<header class="topbar">
+  <div class="tb-in">
+    <div class="tb-brand">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><ellipse cx="12" cy="15.6" rx="5.2" ry="4.3"/><circle cx="5.8" cy="10.2" r="2.2"/><circle cx="9.5" cy="6.3" r="2.3"/><circle cx="14.5" cy="6.3" r="2.3"/><circle cx="18.2" cy="10.2" r="2.2"/></svg>
+      <span>Love Pet <span class="light">Check-in</span></span>
+      <span class="proto">Prototipo</span>
+    </div>
+    <nav class="seg" aria-label="Viste del prototipo">
+      <a href="#totem">Totem cliente</a>
+      <a href="#accoglienza">Accoglienza</a>
+      <a href="#telefono">Telefono cliente</a>
+    </nav>
+    <button class="btn btn-ghost btn-sm" type="button" data-act="reset">Ripristina esempio</button>
+  </div>
+</header>
+<div class="wrap">
+  <p class="v-help" id="vhelp"></p>
+  <main id="view"></main>
+</div>
+
+<script>
+(function(){
+"use strict";
+var KEY = "lovepet-checkin-v1";
+var MIN = 60000;
+
+var FLAGS = [
+  {id:"respiro", t:"Respira a fatica"},
+  {id:"sangue", t:"Perde molto sangue"},
+  {id:"convulsioni", t:"Ha avuto convulsioni"},
+  {id:"collasso", t:"Non si regge in piedi o è svenuto"},
+  {id:"tossico", t:"Ha mangiato veleno, farmaci o cibi tossici", s:"Cioccolato, uva, xilitolo, lumachicida"},
+  {id:"trauma", t:"È stato investito o è caduto dall'alto"},
+  {id:"addome", t:"Pancia gonfia e prova a vomitare senza riuscirci"},
+  {id:"urina", t:"Si sforza per urinare ma non esce nulla"},
+  {id:"parto", t:"Parto in corso con difficoltà"},
+  {id:"calore", t:"Colpo di calore"}
+];
+var SYM = [
+  {id:"controllo", t:"Controllo o vaccino", l:"verde"},
+  {id:"vomito", t:"Vomito", l:"verde", gi:true},
+  {id:"diarrea", t:"Diarrea", l:"verde", gi:true},
+  {id:"sangue_feci", t:"Sangue nel vomito o nelle feci", l:"giallo"},
+  {id:"inappetenza", t:"Non mangia", l:"verde", gi:true},
+  {id:"zoppia", t:"Zoppica", l:"verde"},
+  {id:"pelle", t:"Prurito o problemi di pelle", l:"verde"},
+  {id:"respiratorio", t:"Tosse o starnuti", l:"verde"},
+  {id:"occhi", t:"Occhi rossi o chiusi", l:"giallo"},
+  {id:"orecchie", t:"Orecchie, scuote la testa", l:"verde"},
+  {id:"ferita", t:"Ferita o morso", l:"giallo"},
+  {id:"sete", t:"Beve o urina molto", l:"verde"},
+  {id:"abbattuto", t:"Stanco, abbattuto", l:"verde"},
+  {id:"altro", t:"Altro", l:"verde"}
+];
+var DUR = {oggi:"Da oggi", giorni:"Da 2-3 giorni", settimana:"Da più di 3 giorni"};
+var UMORE = {normale:"Come sempre", giu:"Un po' giù", molto:"Molto giù"};
+/* Legenda a tre colori, testi approvati dalla skill landing-accoglienza-triage-cliente */
+var LV = {
+  rosso:{r:3, label:"Rosso", desc:"Emergenza: visita immediata."},
+  giallo:{r:2, label:"Giallo", desc:"Urgenza: visita appena possibile."},
+  verde:{r:1, label:"Verde", desc:"Non urgente: visita in ordine di arrivo o di prenotazione."}
+};
+var BY_RANK = ["", "verde", "giallo", "rosso"];
+var VALUTAZIONE = "Le informazioni le raccoglie il personale di accoglienza, ma la valutazione clinica spetta sempre al medico veterinario.";
+var FACE_L = ["", "Male", "Non bene", "Così così", "Bene", "Benissimo"];
+var HELP = {
+  totem: "Vista del tablet all'ingresso. I dati sono di esempio e restano in questo browser: non viene inviato nulla.",
+  accoglienza: "Vista del PC dell'accoglienza. Apri il totem in un'altra finestra dello stesso browser: i nuovi arrivi compaiono qui da soli.",
+  telefono: "Quello che vede il cliente dal link WhatsApp o dal QR. Concludi una visita nella vista Accoglienza per vedere il sondaggio di soddisfazione."
+};
+
+function $(s){ return document.querySelector(s); }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function now(){ return Date.now(); }
+function hm(t){ return new Date(t).toLocaleTimeString("it-IT", {hour:"2-digit", minute:"2-digit"}); }
+function mins(ms){ return Math.max(0, Math.round(ms / MIN)); }
+function uid(){ return Math.random().toString(36).slice(2, 10); }
+function norm(v){ var d = String(v || "").replace(/\D/g, ""); d = d.replace(/^0039/, ""); if (d.length === 12 && d.indexOf("39") === 0) d = d.slice(2); return d; }
+function fmtCell(v){ var d = norm(v); return d.length === 10 ? d.slice(0,3) + " " + d.slice(3,6) + " " + d.slice(6) : (v || ""); }
+function etaLabel(e){ if (e == null) return ""; if (e === 0) return "meno di 1 anno"; if (e === 1) return "1 anno"; return e + " anni"; }
+function symT(id){ var s = SYM.filter(function(x){ return x.id === id; })[0]; return s ? s.t : id; }
+function flagT(id){ var s = FLAGS.filter(function(x){ return x.id === id; })[0]; return s ? s.t : id; }
+function symOf(id){ return SYM.filter(function(x){ return x.id === id; })[0]; }
+function sterLabel(p){
+  var f = p.sesso === "F";
+  if (p.ster === "Sì") return f ? "sterilizzata" : "sterilizzato";
+  if (p.ster === "No") return f ? "non sterilizzata" : "non sterilizzato";
+  if (p.ster === "Non so") return "sterilizzazione da verificare";
+  return "";
+}
+function petLine(p){
+  return [p.specie, p.sesso === "M" ? "maschio" : p.sesso === "F" ? "femmina" : "", etaLabel(p.eta), sterLabel(p)].filter(Boolean).join(" · ");
+}
+
+/* Regole di urgenza: proposta da validare con il direttore sanitario */
+function triage(d){
+  if (d.flags && d.flags.length) return {level:"rosso", why: d.flags.map(function(f){ return "segnale d'allarme: " + flagT(f).toLowerCase(); })};
+  var r = 0, why = [];
+  (d.sintomi || []).forEach(function(id){ var k = LV[symOf(id).l].r; if (k > r) r = k; });
+  var top = (d.sintomi || []).filter(function(id){ return LV[symOf(id).l].r === r; }).map(symT);
+  if (top.length) why.push(top.join(", "));
+  if (r === 0) r = 1;
+  var gi = (d.sintomi || []).some(function(id){ return symOf(id).gi; });
+  var eta = d.pet ? d.pet.eta : null;
+  if (r < 2) {
+    if (d.pet && d.pet.specie === "Gatto" && d.sintomi.indexOf("inappetenza") > -1 && d.durata && d.durata !== "oggi") { r = 2; why.push("gatto che non mangia da più di un giorno"); }
+    else if (gi && eta != null && (eta < 1 || eta >= 12)) { r = 2; why.push(eta < 1 ? "cucciolo sotto 1 anno con sintomi digestivi" : "animale anziano con sintomi digestivi"); }
+    else if (d.umore === "molto") { r = 2; why.push("il proprietario lo vede molto giù"); }
+    else if (gi && d.umore === "giu") { r = 2; why.push("sintomi digestivi e il proprietario lo vede giù"); }
+  }
+  return {level: BY_RANK[r], why: why};
+}
+
+/* Dati di esempio */
+function seed(){
+  var t0 = now();
+  function m(n){ return t0 + n * MIN; }
+  function f5(x){ return Math.floor(x / (5 * MIN)) * 5 * MIN; }
+  function c5(x){ return Math.ceil(x / (5 * MIN)) * 5 * MIN; }
+  function O(nome, cognome, cell, email, indirizzo){ return {nome:nome, cognome:cognome, cell:cell, email:email, indirizzo:indirizzo}; }
+  function P(nome, specie, eta, sesso, ster){ return {nome:nome, specie:specie, eta:eta, sesso:sesso, ster:ster}; }
+  var clients = [
+    {id:"c1", nome:"Giulia", cognome:"Bianchi", cell:"3331112233", email:"giulia.bianchi@example.com", indirizzo:"Via dei Mille 8", pets:[P("Luna", "Cane", 6, "F", "Sì")]},
+    {id:"c2", nome:"Paolo", cognome:"Ferrari", cell:"3402224455", email:"paolo.ferrari@example.com", indirizzo:"Corso Garibaldi 41", pets:[P("Otto", "Cane", 11, "M", "No")]},
+    {id:"c3", nome:"Marco", cognome:"Ricci", cell:"3475550101", email:"marco.ricci@example.com", indirizzo:"Via Verdi 3", pets:[P("Kira", "Gatto", 3, "F", "Sì"), P("Brio", "Cane", 9, "M", "Sì")]}
+  ];
+  var appts = [
+    {id:"a1", client:"c1", pet:0, ora:c5(m(8)), vet:"Dott.ssa Conti", motivo:"Controllo annuale e vaccino"},
+    {id:"a2", client:"c2", pet:0, ora:c5(m(28)), vet:"Dott. Ferri", motivo:"Visita dermatologica"}
+  ];
+  var n = 31;
+  function T(o){
+    var t = {id:uid(), num:n++, status:"attesa", flags:[], sintomi:[], durata:"", umore:"", note:"", appt:null, levelConfirmed:true, ack:true, survey:null, nuovo:false};
+    for (var k in o) t[k] = o[k];
+    if (!t.level){ var tr = triage(t); t.level = tr.level; t.why = tr.why; }
+    t.why = t.why || [];
+    return t;
+  }
+  var tickets = [
+    T({status:"concluso", createdAt:m(-140), startedAt:m(-128), endedAt:m(-110), owner:O("Anna","Romano","3201234567","anna.romano@example.com","Via Mazzini 21"), pet:P("Maya","Cane",7,"F","Sì"), sintomi:["controllo"], survey:{score:5, comment:"Puntuali e gentilissimi.", at:m(-100)}}),
+    T({status:"concluso", createdAt:m(-95), startedAt:m(-80), endedAt:m(-62), owner:O("Davide","Colombo","3391239876","davide.colombo@example.com","Via Cavour 14"), pet:P("Pepe","Gatto",9,"M","Sì"), sintomi:["pelle"], durata:"settimana", umore:"normale", survey:{score:4, comment:"", at:m(-55)}}),
+    T({status:"concluso", createdAt:m(-70), startedAt:m(-48), endedAt:m(-35), owner:O("Sara","Greco","3355557788","sara.greco@example.com","Via Roma 77"), pet:P("Zeus","Cane",3,"M","No"), sintomi:["zoppia"], durata:"giorni", umore:"normale", survey:{score:3, comment:"L'attesa è stata un po' lunga.", at:m(-30)}}),
+    T({status:"visita", createdAt:m(-31), startedAt:m(-10), owner:O("Giorgio","Bruno","3487654321","giorgio.bruno@example.com","Piazza Duomo 2"), pet:P("Nala","Cane",5,"F","Sì"), sintomi:["orecchie"], durata:"giorni", umore:"normale"}),
+    T({createdAt:m(-22), owner:O("Elena","Gallo","3289876543","elena.gallo@example.com","Via Nazionale 102"), pet:P("Rocco","Cane",2,"M","No"), sintomi:["vomito","diarrea"], durata:"oggi", umore:"giu", note:"Ieri sera ha mangiato qualcosa al parco."}),
+    T({createdAt:m(-9), owner:O("Silvia","Marino","3381122334","silvia.marino@example.com","Via Dante 9"), pet:P("Birba","Gatto",4,"F","Sì"), appt:{ora:f5(m(-18)), vet:"Dott.ssa Conti", motivo:"Richiamo vaccino"}, level:"verde", why:["appuntamento senza novità"]}),
+    T({createdAt:m(-6), levelConfirmed:false, nuovo:true, owner:O("Franco","Esposito","3474433221","franco.esposito@example.com","Via Leopardi 5"), pet:P("Mia","Gatto",14,"F","Sì"), sintomi:["inappetenza","abbattuto"], durata:"giorni", umore:"molto"}),
+    T({createdAt:m(-3), levelConfirmed:false, owner:O("Luca","Fontana","3456677889","luca.fontana@example.com","Via Pascoli 18"), pet:P("Tobia","Cane",8,"M","Sì"), sintomi:["zoppia"], durata:"giorni", umore:"normale"})
+  ];
+  return {v:2, day:new Date().toDateString(), seq:n, clients:clients, appts:appts, tickets:tickets, lastId:null};
+}
+
+function load(){ try { var raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch (e) {} return null; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+var S = load();
+if (!S || S.v !== 2 || S.day !== new Date().toDateString()) { S = seed(); save(); }
+
+function client(id){ return S.clients.filter(function(c){ return c.id === id; })[0]; }
+function ticket(id){ return S.tickets.filter(function(t){ return t.id === id; })[0]; }
+function queue(){
+  return S.tickets.filter(function(t){ return t.status === "attesa" || t.status === "chiamato"; })
+    .sort(function(a, b){ return (LV[b.level].r - LV[a.level].r) || (a.createdAt - b.createdAt); });
+}
+function aheadOf(t){
+  var q = queue().filter(function(x){ return x.status === "attesa"; });
+  var i = q.map(function(x){ return x.id; }).indexOf(t.id);
+  return i < 0 ? 0 : i;
+}
+
+/* ---------- Totem ---------- */
+var D = null;
+function newDraft(mode){
+  return {mode:mode, step:"", flags:[], owner:{nome:"", cognome:"", cell:"", email:"", indirizzo:""},
+    pet:{nome:"", specie:"", eta:null, sesso:"", ster:""}, sintomi:[], durata:"", umore:"", note:"",
+    privacy:false, apptId:null, clientId:null, acell:"", errors:{}, ticketId:null, flagId:null};
+}
+function needsDetail(){ return D.sintomi.some(function(id){ return id !== "controllo"; }); }
+
+function kHead(showEm){
+  return '<div class="k-head"><div class="k-brand">Clinica Veterinaria<b>Love Pet</b></div>' +
+    (showEm ? '<button class="btn btn-danger" type="button" data-act="emergency">Emergenza</button>' : '') + '</div>';
+}
+function kiosk(inner){ return '<section class="kiosk">' + kHead(true) + '<div class="k-body">' + inner + '</div></section>'; }
+function prog(n, tot){ return '<div class="k-prog"><span>Passo ' + n + ' di ' + tot + '</span><div class="bar"><i style="width:' + Math.round(n / tot * 100) + '%"></i></div></div>'; }
+function errMsg(k){ return D.errors[k] ? '<span class="err-msg">' + esc(D.errors[k]) + '</span>' : ''; }
+function tile(act, f, v, label, on){ return '<button class="tile" type="button" data-act="' + act + '" data-f="' + f + '" data-v="' + esc(v) + '" aria-pressed="' + (on ? "true" : "false") + '">' + esc(label) + '</button>'; }
+function field(k, label, type, extra, ph){
+  return '<div class="field' + (D.errors[k] ? " err" : "") + '"><label for="f-' + k + '">' + label + '</label>' +
+    '<input id="f-' + k + '" data-k="' + k + '" type="' + type + '" ' + (extra || "") + ' value="' + esc(D.owner[k]) + '" placeholder="' + esc(ph || "") + '">' + errMsg(k) + '</div>';
+}
+function foot(backLabel, nextHtml){
+  return '<div class="k-foot"><button class="btn btn-ghost btn-xl" type="button" data-act="back">' + backLabel + '</button>' + nextHtml + '</div>';
+}
+
+function stepHome(){
+  return '<h1 class="k-title">Benvenuto in Love Pet</h1>' +
+    '<p class="k-lead">Registra qui il tuo arrivo. Ci vogliono un paio di minuti.</p>' +
+    '<div class="home-choices">' +
+      '<button class="choice primary" type="button" data-act="start-appt"><span class="choice-t">Ho un appuntamento</span><span class="choice-s">Ci basta il tuo numero di cellulare</span></button>' +
+      '<button class="choice" type="button" data-act="start-walkin"><span class="choice-t">Non ho appuntamento</span><span class="choice-s">Ti chiediamo i tuoi dati e cosa ha il tuo animale</span></button>' +
+    '</div>' +
+    '<p class="home-note">Il tuo animale sta molto male? Tocca <b>Emergenza</b> in alto: avvisiamo subito il personale.</p>';
+}
+function stepFlags(){
+  var appt = D.mode === "appt";
+  return (appt ? prog(1, 2) : prog(1, 4)) +
+    '<h2 class="k-q">Il tuo animale ha uno di questi problemi adesso?</h2>' +
+    '<p class="k-hint">Se sì, tocca la voce: avvisiamo subito il personale.</p>' +
+    '<div class="flags">' + FLAGS.map(function(f){
+      return '<button class="flag" type="button" data-act="flag" data-id="' + f.id + '"><span>' + esc(f.t) + (f.s ? '<small>' + esc(f.s) + '</small>' : '') + '</span><span class="flag-go">Avvisa</span></button>';
+    }).join("") + '</div>' +
+    foot("Indietro", '<button class="btn btn-primary btn-xl push" type="button" data-act="noflags">Nessuno di questi, continua</button>');
+}
+function stepOwner(){
+  var c = D.clientId ? client(D.clientId) : null;
+  return prog(2, 4) + '<h2 class="k-q">I tuoi dati</h2>' +
+    '<p class="k-hint">Sei già nostro cliente? Scrivi il cellulare: il resto lo compiliamo noi.</p>' +
+    (c ? '<p class="notice ok">Bentornato, ' + esc(c.nome) + '! Abbiamo compilato i tuoi dati: controlla che siano giusti.</p>' : '<p class="demo-hint">Prototipo: scrivi 347 555 0101 per vedere un cliente già registrato.</p>') +
+    '<div class="form">' +
+      field("cell", "Cellulare", "tel", 'inputmode="tel" autocomplete="tel"', "333 123 4567") +
+      '<div class="row2">' + field("nome", "Nome", "text", 'autocomplete="given-name"') + field("cognome", "Cognome", "text", 'autocomplete="family-name"') + '</div>' +
+      field("email", "Email", "email", 'inputmode="email" autocomplete="email"', "nome@esempio.it") +
+      field("indirizzo", "Indirizzo", "text", 'autocomplete="street-address"', "Via, numero civico, comune") +
+      '<details class="privacy"><summary>Leggi l\'informativa privacy</summary><p>Qui andrà il testo dell\'informativa della clinica (art. 13 GDPR): chi tratta i dati, per quali finalità, per quanto tempo e come esercitare i tuoi diritti.</p></details>' +
+      '<div class="' + (D.errors.privacy ? "field err" : "field") + '"><label class="check"><input type="checkbox" id="f-privacy"' + (D.privacy ? " checked" : "") + '><span>Ho letto l\'informativa e acconsento al trattamento dei miei dati per gestire la visita.</span></label>' + errMsg("privacy") + '</div>' +
+    '</div>' +
+    foot("Indietro", '<button class="btn btn-primary btn-xl push" type="button" data-act="next">Continua</button>');
+}
+function stepPet(){
+  var p = D.pet, c = D.clientId ? client(D.clientId) : null;
+  var known = c && c.pets.length ? '<div class="known"><b>I tuoi animali:</b>' + c.pets.map(function(x, i){
+    return '<button class="tile" type="button" data-act="pick-pet" data-i="' + i + '" aria-pressed="' + (p.nome === x.nome ? "true" : "false") + '">' + esc(x.nome) + '</button>';
+  }).join("") + '<span class="small">oppure inseriscine uno nuovo qui sotto</span></div>' : '';
+  var sterL = p.sesso === "F" ? "È sterilizzata?" : "È sterilizzato?";
+  return prog(3, 4) + '<h2 class="k-q">Il tuo animale</h2>' + known +
+    '<div class="form">' +
+      '<div class="field' + (D.errors.specie ? " err" : "") + '"><span class="flabel">Specie</span><div class="tiles">' +
+        ["Cane", "Gatto", "Altro"].map(function(v){ return tile("set", "specie", v, v, p.specie === v); }).join("") + '</div>' + errMsg("specie") + '</div>' +
+      '<div class="field' + (D.errors.pnome ? " err" : "") + '"><label for="f-pnome">Nome</label><input id="f-pnome" data-pk="nome" type="text" value="' + esc(p.nome) + '" autocomplete="off">' + errMsg("pnome") + '</div>' +
+      '<div class="field' + (D.errors.eta ? " err" : "") + '"><span class="flabel">Età</span><div class="stepper">' +
+        '<button type="button" data-act="eta" data-d="-1" aria-label="Diminuisci età">−</button>' +
+        '<output aria-live="polite">' + (p.eta == null ? "Tocca +" : etaLabel(p.eta)) + '</output>' +
+        '<button type="button" data-act="eta" data-d="1" aria-label="Aumenta età">+</button></div>' + errMsg("eta") + '</div>' +
+      '<div class="field' + (D.errors.sesso ? " err" : "") + '"><span class="flabel">Sesso</span><div class="tiles">' +
+        tile("set", "sesso", "M", "Maschio", p.sesso === "M") + tile("set", "sesso", "F", "Femmina", p.sesso === "F") + '</div>' + errMsg("sesso") + '</div>' +
+      '<div class="field' + (D.errors.ster ? " err" : "") + '"><span class="flabel">' + sterL + '</span><div class="tiles">' +
+        ["Sì", "No", "Non so"].map(function(v){ return tile("set", "ster", v, v, p.ster === v); }).join("") + '</div>' + errMsg("ster") + '</div>' +
+    '</div>' +
+    foot("Indietro", '<button class="btn btn-primary btn-xl push" type="button" data-act="next">Continua</button>');
+}
+function stepSym(){
+  var appt = D.mode === "appt";
+  var nm = D.pet.nome ? esc(D.pet.nome) : "il tuo animale";
+  return (appt ? prog(2, 2) : prog(4, 4)) +
+    '<h2 class="k-q">' + (appt ? "Cosa è cambiato per " + nm + "?" : "Perché siete qui oggi?") + '</h2>' +
+    '<p class="k-hint">Puoi scegliere più voci.</p>' +
+    '<div class="field' + (D.errors.sintomi ? " err" : "") + '"><div class="tiles sym">' + SYM.filter(function(s){ return !(appt && s.id === "controllo"); }).map(function(s){
+      return '<button class="tile" type="button" data-act="sym" data-id="' + s.id + '" aria-pressed="' + (D.sintomi.indexOf(s.id) > -1 ? "true" : "false") + '">' + esc(s.t) + '</button>';
+    }).join("") + '</div>' + errMsg("sintomi") + '</div>' +
+    (needsDetail() ?
+      '<div class="field' + (D.errors.durata ? " err" : "") + '"><span class="flabel">Da quando?</span><div class="tiles">' +
+        Object.keys(DUR).map(function(k){ return tile("set", "durata", k, DUR[k], D.durata === k); }).join("") + '</div>' + errMsg("durata") + '</div>' +
+      '<div class="field' + (D.errors.umore ? " err" : "") + '"><span class="flabel">Come lo vedi?</span><div class="tiles">' +
+        Object.keys(UMORE).map(function(k){ return tile("set", "umore", k, UMORE[k], D.umore === k); }).join("") + '</div>' + errMsg("umore") + '</div>' : '') +
+    '<div class="field"><label for="f-note">Vuoi aggiungere qualcosa? <span class="opt">facoltativo</span></label><textarea id="f-note" data-dk="note" rows="2">' + esc(D.note) + '</textarea></div>' +
+    foot("Indietro", '<button class="btn btn-primary btn-xl push" type="button" data-act="next">' + (appt ? "Conferma il mio arrivo" : "Continua") + '</button>');
+}
+function stepReview(){
+  var o = D.owner, p = D.pet, tr = triage(D);
+  return '<h2 class="k-q">Controlla e conferma</h2>' +
+    '<div class="review">' +
+      '<div class="rv"><h3>I tuoi dati</h3><p><b>' + esc(o.nome) + ' ' + esc(o.cognome) + '</b><br>' + esc(fmtCell(o.cell)) + '<br>' + esc(o.email) + '<br>' + esc(o.indirizzo) + '</p><button class="btn btn-ghost btn-sm" type="button" data-act="goto" data-step="owner">Modifica</button></div>' +
+      '<div class="rv"><h3>Il tuo animale</h3><p><b>' + esc(p.nome) + '</b><br>' + esc(petLine(p)) + '</p><button class="btn btn-ghost btn-sm" type="button" data-act="goto" data-step="pet">Modifica</button></div>' +
+      '<div class="rv"><h3>Motivo</h3><p>' + D.sintomi.map(symT).map(esc).join(", ") +
+        (D.durata ? '<br>' + DUR[D.durata] : '') + (D.umore ? ' · ' + esc(UMORE[D.umore]) : '') +
+        (D.note ? '<br><i>' + esc(D.note) + '</i>' : '') + '</p><button class="btn btn-ghost btn-sm" type="button" data-act="goto" data-step="sym">Modifica</button></div>' +
+    '</div>' +
+    '<div class="code-box lv-' + tr.level + '"><span class="pill">Codice ' + LV[tr.level].label.toLowerCase() + '</span><p>' + LV[tr.level].desc + '</p><p class="small">' + VALUTAZIONE + '</p></div>' +
+    foot("Indietro", '<button class="btn btn-primary btn-xl push" type="button" data-act="submit">Conferma il mio arrivo</button>');
+}
+function stepApptPhone(){
+  return '<h2 class="k-q">Qual è il tuo cellulare?</h2>' +
+    '<p class="k-hint">Lo stesso numero che hai lasciato quando hai prenotato.</p>' +
+    '<div class="field' + (D.errors.acell ? " err" : "") + '"><label for="f-acell" class="sr-only">Cellulare</label><input id="f-acell" class="big" data-ak="1" type="tel" inputmode="tel" autocomplete="tel" value="' + esc(D.acell) + '" placeholder="333 123 4567">' + errMsg("acell") + '</div>' +
+    '<p class="demo-hint">Prototipo: prova con 333 111 2233 oppure 340 222 4455.</p>' +
+    foot("Indietro", '<button class="btn btn-primary btn-xl push" type="button" data-act="search">Cerca il mio appuntamento</button>');
+}
+function stepApptFound(){
+  var a = S.appts.filter(function(x){ return x.id === D.apptId; })[0];
+  var nm = esc(D.pet.nome);
+  return '<h2 class="k-q">Ciao ' + esc(D.owner.nome) + ', ti abbiamo trovato</h2>' +
+    '<div class="appt"><div class="appt-time">' + hm(a.ora) + '</div><div><b>' + nm + '</b> · ' + esc(a.motivo) + '<br><span class="small">con ' + esc(a.vet) + '</span></div></div>' +
+    '<h3 class="k-q2">Da quando hai prenotato, ' + nm + ' ha sintomi nuovi o sta peggio?</h3>' +
+    '<div class="k-foot stack"><button class="btn btn-primary btn-xl" type="button" data-act="appt-ok">No, confermo il mio arrivo</button>' +
+    '<button class="btn btn-ghost btn-xl" type="button" data-act="appt-changes">Sì, ci sono novità</button>' +
+    '<button class="btn btn-ghost" type="button" data-act="back">Non sono io, torna indietro</button></div>';
+}
+function stepApptNone(){
+  var c = D.clientId ? client(D.clientId) : null;
+  return '<h2 class="k-q">' + (c ? "Ciao " + esc(c.nome) + ", oggi non troviamo appuntamenti a questo numero" : "Non troviamo appuntamenti a questo numero") + '</h2>' +
+    '<p class="k-hint">Puoi registrarti come arrivo senza appuntamento: ' + (c ? "i tuoi dati sono già compilati." : "ti chiediamo pochi dati.") + '</p>' +
+    '<div class="k-foot stack"><button class="btn btn-primary btn-xl" type="button" data-act="walkin-from-appt">Registrati senza appuntamento</button>' +
+    '<button class="btn btn-ghost btn-xl" type="button" data-act="back">Riprova con un altro numero</button></div>';
+}
+function stepDone(){
+  var t = ticket(D.ticketId);
+  if (!t) return stepHome();
+  var a = aheadOf(t), nm = esc(t.pet.nome || "il tuo animale");
+  return '<div class="k-body done" style="padding:0">' +
+    '<p class="small"><b>Arrivo registrato alle ' + hm(t.createdAt) + '</b></p>' +
+    '<div class="ticket-num"><span>Il tuo numero</span><b>' + t.num + '</b></div>' +
+    '<div class="code-box lv-' + t.level + '"><span class="pill">Codice ' + LV[t.level].label.toLowerCase() + '</span><p>' + LV[t.level].desc + '</p></div>' +
+    '<p class="k-q2">' + (a === 0 ? "Siete i prossimi in coda." : "Davanti a voi: " + a + " " + (a === 1 ? "persona" : "persone") + ".") + '</p>' +
+    '<p>Accomodati in sala d\'attesa: per quanto possibile ti teniamo aggiornato sui tempi. Quando tocca a ' + nm + ' ti scriviamo su WhatsApp al ' + esc(fmtCell(t.owner.cell)) + '.</p>' +
+    '<div class="k-foot"><button class="btn btn-ghost" type="button" data-act="see-phone">Vedi cosa arriva sul telefono</button><button class="btn btn-primary push" type="button" data-act="home">Fine (<span id="cd">' + resetLeft + '</span>)</button></div>' +
+  '</div>';
+}
+function renderEmergency(){
+  return '<section class="kiosk emergency" role="alert"><div class="em">' +
+    '<p class="em-eyebrow">Allarme inviato all\'accoglienza</p>' +
+    '<h1>Avvisa subito il personale dell\'accoglienza</h1>' +
+    (D.flagId ? '<p><b>' + esc(flagT(D.flagId)) + '</b></p>' : '') +
+    '<p>Resta vicino al tuo animale: arriviamo subito. Non serve compilare altro.</p>' +
+    '<button class="btn btn-em" type="button" data-act="home">Fatto</button>' +
+  '</div></section>';
+}
+function renderTotem(){
+  if (!D) return kiosk(stepHome());
+  switch (D.step){
+    case "flags": return kiosk(stepFlags());
+    case "owner": return kiosk(stepOwner());
+    case "pet": return kiosk(stepPet());
+    case "sym": return kiosk(stepSym());
+    case "review": return kiosk(stepReview());
+    case "appt-phone": return kiosk(stepApptPhone());
+    case "appt-found": return kiosk(stepApptFound());
+    case "appt-none": return kiosk(stepApptNone());
+    case "done": return kiosk(stepDone());
+    case "emergency": return renderEmergency();
+  }
+  return kiosk(stepHome());
+}
+
+function go(step){ D.step = step; D.errors = {}; render(); }
+function back(){
+  var map = D.mode === "appt"
+    ? {"appt-phone":null, "appt-found":"appt-phone", "appt-none":"appt-phone", "flags":"appt-found", "sym":"flags"}
+    : {"flags":null, "owner":"flags", "pet":"owner", "sym":"pet", "review":"sym"};
+  var p = map[D.step];
+  if (!p) { D = null; render(); } else go(p);
+}
+function validOwner(){
+  var o = D.owner, e = {}, c = norm(o.cell);
+  if (c.length < 9 || c.length > 11) e.cell = "Controlla il numero: servono 9 o 10 cifre";
+  if (o.nome.trim().length < 2) e.nome = "Scrivi il tuo nome";
+  if (o.cognome.trim().length < 2) e.cognome = "Scrivi il tuo cognome";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(o.email.trim())) e.email = "Controlla l'email, ad esempio nome@gmail.com";
+  if (o.indirizzo.trim().length < 5) e.indirizzo = "Scrivi via, numero civico e comune";
+  if (!D.privacy) e.privacy = "Per continuare serve la presa visione dell'informativa";
+  D.errors = e; return !Object.keys(e).length;
+}
+function validPet(){
+  var p = D.pet, e = {};
+  if (!p.specie) e.specie = "Scegli la specie";
+  if (!p.nome.trim()) e.pnome = "Scrivi il nome";
+  if (p.eta == null) e.eta = "Indica l'età con + o −";
+  if (!p.sesso) e.sesso = "Scegli il sesso";
+  if (!p.ster) e.ster = "Scegli una risposta";
+  D.errors = e; return !Object.keys(e).length;
+}
+function validSym(){
+  var e = {};
+  if (!D.sintomi.length) e.sintomi = "Scegli almeno una voce";
+  if (needsDetail()){ if (!D.durata) e.durata = "Scegli da quando"; if (!D.umore) e.umore = "Scegli come lo vedi"; }
+  D.errors = e; return !Object.keys(e).length;
+}
+function next(){
+  if (D.step === "owner") { if (validOwner()) go("pet"); else render(); }
+  else if (D.step === "pet") { if (validPet()) go("sym"); else render(); }
+  else if (D.step === "sym") { if (validSym()) { if (D.mode === "appt") submit(); else go("review"); } else render(); }
+}
+function searchAppt(){
+  var c = norm(D.acell);
+  if (c.length < 9) { D.errors = {acell:"Scrivi il numero completo"}; render(); return; }
+  var cl = S.clients.filter(function(x){ return x.cell === c; })[0];
+  var ap = cl ? S.appts.filter(function(a){ return a.client === cl.id && !a.used; }).sort(function(a, b){ return a.ora - b.ora; })[0] : null;
+  if (cl) { D.clientId = cl.id; D.owner = {nome:cl.nome, cognome:cl.cognome, cell:fmtCell(cl.cell), email:cl.email, indirizzo:cl.indirizzo}; }
+  if (ap) { D.apptId = ap.id; D.pet = JSON.parse(JSON.stringify(cl.pets[ap.pet])); go("appt-found"); }
+  else go("appt-none");
+}
+function makeTicket(o){
+  var t = {id:uid(), num:S.seq++, createdAt:now(), status:"attesa", flags:[], sintomi:[], durata:"", umore:"", note:"", appt:null, levelConfirmed:false, ack:true, survey:null, nuovo:false, why:[]};
+  for (var k in o) t[k] = o[k];
+  S.tickets.push(t); S.lastId = t.id; save();
+  return t;
+}
+function submit(){
+  var appt = D.apptId ? S.appts.filter(function(a){ return a.id === D.apptId; })[0] : null;
+  var noNews = D.mode === "appt" && !D.sintomi.length;
+  var tr = noNews ? {level:"verde", why:["appuntamento senza novità"]} : triage(D);
+  var owner = {nome:D.owner.nome.trim(), cognome:D.owner.cognome.trim(), cell:norm(D.owner.cell), email:D.owner.email.trim(), indirizzo:D.owner.indirizzo.trim()};
+  var pet = {nome:D.pet.nome.trim(), specie:D.pet.specie, eta:D.pet.eta, sesso:D.pet.sesso, ster:D.pet.ster};
+  var t = makeTicket({level:tr.level, why:tr.why, levelConfirmed:noNews, ack:tr.level !== "rosso", owner:owner, pet:pet,
+    flags:D.flags.slice(), sintomi:D.sintomi.slice(), durata:D.durata, umore:D.umore, note:D.note.trim(),
+    appt: appt ? {ora:appt.ora, vet:appt.vet, motivo:appt.motivo} : null, nuovo:!D.clientId});
+  if (appt) appt.used = true;
+  if (!D.clientId) S.clients.push({id:"c" + uid(), nome:owner.nome, cognome:owner.cognome, cell:owner.cell, email:owner.email, indirizzo:owner.indirizzo, pets:[pet]});
+  else { var c = client(D.clientId); if (c && !c.pets.some(function(p){ return p.nome.toLowerCase() === pet.nome.toLowerCase(); })) c.pets.push(pet); }
+  save();
+  D.ticketId = t.id; D.step = "done"; D.errors = {};
+  startReset(30); render();
+}
+function emergency(flagId){
+  if (D && D.step === "emergency") return;
+  var d = D || newDraft("walkin");
+  var appt = d.apptId ? S.appts.filter(function(a){ return a.id === d.apptId; })[0] : null;
+  var t = makeTicket({level:"rosso", why:[flagId ? "segnale d'allarme: " + flagT(flagId).toLowerCase() : "emergenza segnalata dal totem"],
+    levelConfirmed:false, ack:false, emergenza:true, owner:JSON.parse(JSON.stringify(d.owner)), pet:JSON.parse(JSON.stringify(d.pet)),
+    flags: flagId ? [flagId] : [], appt: appt ? {ora:appt.ora, vet:appt.vet, motivo:appt.motivo} : null, nuovo:!d.clientId});
+  if (t.owner.cell) t.owner.cell = norm(t.owner.cell);
+  D = d; D.step = "emergency"; D.flagId = flagId; D.ticketId = t.id;
+  startReset(45); render();
+}
+var resetT = null, resetLeft = 0;
+function startReset(n){
+  stopReset(); resetLeft = n;
+  resetT = setInterval(function(){
+    resetLeft--;
+    var el = document.getElementById("cd"); if (el) el.textContent = resetLeft;
+    if (resetLeft <= 0) { stopReset(); D = null; if (route() === "totem") render(); }
+  }, 1000);
+}
+function stopReset(){ if (resetT) clearInterval(resetT); resetT = null; }
+
+/* ---------- Banco ---------- */
+var soundOn = false, actx = null;
+function beep(){
+  if (!actx) return;
+  try {
+    var o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
+    o.type = "square"; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.12, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.35);
+  } catch (e) {}
+}
+function hasAlarm(){ return S.tickets.some(function(t){ return t.level === "rosso" && !t.ack && t.status !== "concluso"; }); }
+setInterval(function(){ if (soundOn && route() === "accoglienza" && hasAlarm()) { beep(); setTimeout(beep, 420); } }, 3000);
+
+function avg(a){ return a.reduce(function(s, x){ return s + x; }, 0) / a.length; }
+function chipsFor(t){
+  var out = t.flags.map(function(f){ return '<span class="chip flag-c">' + esc(flagT(f)) + '</span>'; });
+  out = out.concat(t.sintomi.map(function(s){ return '<span class="chip">' + esc(symT(s)) + '</span>'; }));
+  if (t.durata) out.push('<span class="chip">' + esc(DUR[t.durata]) + '</span>');
+  if (t.umore) out.push('<span class="chip">' + esc(UMORE[t.umore]) + '</span>');
+  return out.length ? '<div class="chips">' + out.join("") + '</div>' : '';
+}
+function ownerLine(t){
+  var o = t.owner || {};
+  if (!o.nome && !o.cell) return '<span class="tk-sub"><b>Proprietario da identificare all\'accoglienza</b></span>';
+  return '<span class="tk-sub">' + esc((o.nome || "") + " " + (o.cognome || "")) + (o.cell ? " · " + esc(fmtCell(o.cell)) : "") + (o.email ? " · " + esc(o.email) : "") + (o.indirizzo ? " · " + esc(o.indirizzo) : "") +
+    (t.nuovo ? ' <span class="tag">nuovo cliente</span>' : '') + '</span>';
+}
+function card(t){
+  var w = mins(now() - t.createdAt);
+  var wc = w >= 30 ? "crit" : w >= 15 ? "warn" : "";
+  var late = t.appt && t.status === "attesa" && now() - t.appt.ora >= 15 * MIN;
+  var p = t.pet || {};
+  return '<article class="tk lv-' + t.level + (t.status === "chiamato" ? " is-called" : "") + '">' +
+    '<div class="tk-left"><div class="tk-num">' + t.num + '</div><span class="pill">' + LV[t.level].label + '</span>' + (!t.levelConfirmed ? '<span class="tag tag-prop">da confermare</span>' : '') + '</div>' +
+    '<div class="tk-mid">' +
+      '<div class="tk-pet"><b>' + esc(p.nome || "Animale da identificare") + '</b>' + (petLine(p) ? ' · ' + esc(petLine(p)) : '') + '</div>' +
+      ownerLine(t) + chipsFor(t) +
+      (t.note ? '<p class="tk-note">«' + esc(t.note) + '»</p>' : '') +
+      '<span class="tk-sub">' + (t.appt ? "Appuntamento " + hm(t.appt.ora) + " · " + esc(t.appt.vet) + " · " + esc(t.appt.motivo) : "Senza appuntamento") + ' · arrivato alle ' + hm(t.createdAt) +
+        (late ? ' <span class="tag tag-warn">oltre 15 min dall\'orario</span>' : '') +
+        (t.status === "chiamato" ? ' · <b>chiamato alle ' + hm(t.calledAt) + '</b>' : '') + '</span>' +
+      (t.why && t.why.length ? '<span class="tk-why">Perché questo codice: ' + esc(t.why.join("; ")) + '</span>' : '') +
+    '</div>' +
+    '<div class="tk-right">' +
+      '<div class="tk-wait ' + wc + '"><b>' + w + '</b> min<small>in attesa</small></div>' +
+      '<div class="lvsw" role="group" aria-label="Cambia codice">' + ["rosso", "giallo", "verde"].map(function(l){
+        return '<button class="dot lv-' + l + '" type="button" data-act="level" data-id="' + t.id + '" data-l="' + l + '" aria-pressed="' + (t.level === l ? "true" : "false") + '" aria-label="Codice ' + LV[l].label.toLowerCase() + '" title="Codice ' + LV[l].label.toLowerCase() + '"></button>';
+      }).join("") + '</div>' +
+      '<div class="tk-actions">' +
+        (!t.levelConfirmed ? '<button class="btn btn-sm btn-ghost" type="button" data-act="confirm" data-id="' + t.id + '">Conferma codice</button>' : '') +
+        (t.status === "attesa" ? '<button class="btn btn-sm btn-primary" type="button" data-act="call" data-id="' + t.id + '">Chiama</button>' : '') +
+        '<button class="btn btn-sm btn-ghost" type="button" data-act="start" data-id="' + t.id + '">In visita</button>' +
+      '</div>' +
+    '</div>' +
+  '</article>';
+}
+function renderBanco(){
+  var q = queue();
+  var waiting = q.filter(function(t){ return t.status === "attesa"; });
+  var called = q.filter(function(t){ return t.status === "chiamato"; });
+  var inVisit = S.tickets.filter(function(t){ return t.status === "visita"; }).sort(function(a, b){ return a.startedAt - b.startedAt; });
+  var done = S.tickets.filter(function(t){ return t.status === "concluso"; }).sort(function(a, b){ return b.endedAt - a.endedAt; });
+  var started = S.tickets.filter(function(t){ return t.startedAt; });
+  var avgWait = started.length ? Math.round(avg(started.map(function(t){ return (t.startedAt - t.createdAt) / MIN; }))) : null;
+  var longest = waiting.slice().sort(function(a, b){ return a.createdAt - b.createdAt; })[0];
+  var surveyed = S.tickets.filter(function(t){ return t.survey; });
+  var sat = surveyed.length ? avg(surveyed.map(function(t){ return t.survey.score; })) : null;
+  var alarms = S.tickets.filter(function(t){ return t.level === "rosso" && !t.ack && t.status !== "concluso"; });
+  var worse = S.tickets.filter(function(t){ return t.peggiora && !t.peggioraSeen && t.status === "attesa"; });
+  var today = new Date().toLocaleDateString("it-IT", {weekday:"long", day:"numeric", month:"long"});
+
+  function kpi(l, v, s){ return '<div class="kpi"><span class="kpi-l">' + l + '</span><span class="kpi-v">' + v + '</span><span class="kpi-s">' + s + '</span></div>'; }
+  return '<section>' +
+    '<div class="desk-head"><div><h1 class="v-title">Sala d\'attesa</h1><p class="v-sub">' + today + ' · aggiornato alle ' + hm(now()) + '</p></div>' +
+      '<button class="btn btn-ghost btn-sm" type="button" data-act="sound" aria-pressed="' + (soundOn ? "true" : "false") + '">' + (soundOn ? "Suono allarmi attivo" : "Attiva suono allarmi") + '</button></div>' +
+    alarms.map(function(t){
+      return '<div class="alarm" role="alert"><div><b>Emergenza dal totem, N° ' + t.num + '</b> · alle ' + hm(t.createdAt) + ' · ' + esc(t.why.join("; ")) + (t.pet && t.pet.nome ? ' · ' + esc(t.pet.nome) : '') + '</div>' +
+        '<button class="btn btn-sm" type="button" data-act="ack" data-id="' + t.id + '">Presa in carico</button></div>';
+    }).join("") +
+    worse.map(function(t){
+      return '<div class="alert-soft" role="status"><div><b>N° ' + t.num + ' · ' + esc(t.pet.nome) + '</b>: il proprietario segnala un peggioramento alle ' + hm(t.peggioraAt) + '</div>' +
+        '<button class="btn btn-sm btn-ghost" type="button" data-act="seen" data-id="' + t.id + '">Visto</button></div>';
+    }).join("") +
+    '<div class="kpis">' +
+      kpi("In attesa", waiting.length, called.length ? called.length + (called.length === 1 ? " chiamato" : " chiamati") + " in arrivo" : "nessuno chiamato") +
+      kpi("Attesa media oggi", avgWait != null ? avgWait + " min" : "—", "dall'arrivo all'inizio visita") +
+      kpi("Attesa più lunga ora", longest ? mins(now() - longest.createdAt) + " min" : "—", longest ? "N° " + longest.num + " · " + esc(longest.pet.nome || "da identificare") : "nessuno in coda") +
+      kpi("Soddisfazione", sat != null ? sat.toFixed(1).replace(".", ",") + " / 5" : "—", surveyed.length + (surveyed.length === 1 ? " risposta" : " risposte") + " oggi") +
+    '</div>' +
+    '<div class="desk">' +
+      '<div><h2 class="sec-t">In coda <span class="count">' + q.length + '</span></h2>' +
+        '<div class="list">' + (q.length ? q.map(card).join("") : '<div class="empty">Nessuno in attesa. I nuovi check-in dal totem compaiono qui.</div>') + '</div></div>' +
+      '<aside>' +
+        '<div class="side-sec"><h2 class="sec-t">In visita <span class="count">' + inVisit.length + '</span></h2><div class="list">' +
+          (inVisit.length ? inVisit.map(function(t){
+            return '<div class="mini lv-' + t.level + '"><b>' + t.num + '</b><span class="grow">' + esc(t.pet.nome || "da identificare") + ' · da ' + mins(now() - t.startedAt) + ' min<br><span class="small">attesa ' + mins(t.startedAt - t.createdAt) + ' min</span></span>' +
+              '<button class="btn btn-sm btn-ghost" type="button" data-act="end" data-id="' + t.id + '">Concludi</button></div>';
+          }).join("") : '<div class="empty">Nessuna visita in corso.</div>') + '</div></div>' +
+        '<div class="side-sec"><h2 class="sec-t">Conclusi oggi <span class="count">' + done.length + '</span></h2><div class="list">' +
+          (done.length ? done.map(function(t){
+            var s = t.survey, cls = s ? (s.score >= 4 ? "hi" : s.score === 3 ? "mid" : "lo") : "";
+            return '<div class="mini lv-' + t.level + '"><b>' + t.num + '</b><span class="grow">' + esc(t.pet.nome || "da identificare") + ' · attesa ' + mins(t.startedAt - t.createdAt) + ' min' +
+              (s ? (s.comment ? '<q>' + esc(s.comment) + '</q>' : '') : '<br><span class="small">Sondaggio inviato, in attesa di risposta</span>') + '</span>' +
+              (s ? '<span class="score ' + cls + '">' + s.score + '/5</span>' : '') + '</div>';
+          }).join("") : '<div class="empty">Ancora nessuna visita conclusa.</div>') + '</div></div>' +
+        '<details class="rules"><summary>Come il totem propone il codice</summary><ul>' +
+          '<li><b>Rosso</b>, emergenza: uno dei segnali d\'allarme del primo passo, oppure il tasto Emergenza. Allarme immediato qui all\'accoglienza.</li>' +
+          '<li><b>Giallo</b>, urgenza: sangue nel vomito o nelle feci, ferita o morso, occhi rossi o chiusi.</li>' +
+          '<li><b>Verde</b>, non urgente: tutti gli altri motivi e gli appuntamenti senza novità.</li>' +
+          '<li>Il verde diventa giallo se il gatto non mangia da più di un giorno; se c\'è vomito, diarrea o inappetenza in un cucciolo sotto 1 anno o in un anziano da 12 anni in su; se il proprietario lo vede molto giù, oppure giù con sintomi digestivi.</li>' +
+        '</ul><p>Tre colori, come nella pagina per i clienti. Il codice del totem è una proposta organizzativa: la valutazione clinica spetta sempre al medico veterinario. Regole da validare con il direttore sanitario.</p></details>' +
+      '</aside>' +
+    '</div>' +
+  '</section>';
+}
+
+/* ---------- Telefono ---------- */
+var phoneSel = null, phoneDraft = {};
+function face(s){
+  var c = (s - 3) * 4.5;
+  return '<svg viewBox="0 0 52 52" aria-hidden="true"><circle class="f" cx="26" cy="26" r="23"/><circle class="e" cx="18.5" cy="21" r="2.6"/><circle class="e" cx="33.5" cy="21" r="2.6"/><path d="M16 ' + (34 - c / 3) + ' Q26 ' + (34 + c) + ' 36 ' + (34 - c / 3) + '"/></svg>';
+}
+function percorso(t){
+  var cur = t.status === "attesa" ? 3 : (t.status === "chiamato" || t.status === "visita") ? 4 : 5;
+  var steps = ["Arrivo", "Triage", "Sala d'attesa", "Visita"];
+  return '<ol class="path" aria-label="Il tuo percorso in clinica">' + steps.map(function(s, i){
+    var n = i + 1, c = n < cur ? "done" : n === cur ? "now" : "";
+    return '<li class="' + c + '"' + (c === "now" ? ' aria-current="step"' : '') + '><span>' + n + '</span>' + esc(s) + '</li>';
+  }).join("") + '</ol>';
+}
+function faqHtml(){
+  return '<div class="faq">' +
+    '<details><summary>Cos\'è il triage e perché lo facciamo</summary><p>Il triage è il modo in cui stabiliamo l\'ordine delle visite in base all\'urgenza, non all\'orario di arrivo. ' + VALUTAZIONE + '</p></details>' +
+    '<details><summary>Perché a volte qualcuno entra prima di te</summary><p>Se un animale arrivato dopo di te è in condizioni gravi (difficoltà a respirare, trauma, avvelenamento), lo facciamo passare subito. Lo faremmo anche per il tuo. Se l\'attesa si allunga, ti avvisiamo noi.</p></details>' +
+  '</div>';
+}
+function phoneBody(t){
+  var pn = esc(t.pet.nome || "il tuo animale"), on = esc(t.owner.nome || "");
+  var head = '<p class="ph-eyebrow">Love Pet · Sala d\'attesa</p>';
+  if (t.status === "attesa") {
+    var a = aheadOf(t), w = mins(now() - t.createdAt);
+    return head + percorso(t) + '<h2>' + (on ? "Ciao " + on + ", " : "") + pn + ' è in coda</h2>' +
+      '<div class="ph-num"><span class="small">Il tuo numero</span><b>' + t.num + '</b></div>' +
+      '<div class="code-box lv-' + t.level + '"><span class="pill">Codice ' + LV[t.level].label.toLowerCase() + '</span><p>' + LV[t.level].desc + '</p></div>' +
+      '<p class="ph-big">' + (a === 0 ? "Siete i prossimi" : "Davanti a voi: " + a + " " + (a === 1 ? "persona" : "persone")) + '</p>' +
+      '<p class="small">In attesa da ' + w + ' min. Per quanto possibile ti teniamo aggiornato sui tempi; quando tocca a ' + pn + ' ti scriviamo qui, così puoi aspettare anche fuori.</p>' +
+      (t.peggiora ? '<p class="notice warn">Hai segnalato un peggioramento: l\'accoglienza è stata avvisata.</p>'
+        : '<button class="btn btn-danger-outline btn-block" type="button" data-act="worse" data-id="' + t.id + '">Sta peggiorando? Avvisa l\'accoglienza</button>') + faqHtml();
+  }
+  if (t.status === "chiamato") return head + percorso(t) + '<div class="ph-turn"><span>N° ' + t.num + '</span><b>Tocca a ' + pn + '!</b><span>Entra pure: ti accompagniamo noi.</span></div><p class="small">Chiamato alle ' + hm(t.calledAt) + '.</p>';
+  if (t.status === "visita") return head + percorso(t) + '<h2>' + pn + ' è in visita</h2><p>Entrato alle ' + hm(t.startedAt) + '. Ti aspettiamo all\'uscita.</p>';
+  if (!t.survey) {
+    var sc = phoneDraft.score || 0;
+    return head + '<h2>Com\'è andata oggi?</h2><p class="small">Una risposta veloce ci aiuta a migliorare: bastano 10 secondi.</p>' +
+      '<div class="faces" role="group" aria-label="Voto da 1 a 5">' + [1, 2, 3, 4, 5].map(function(s){
+        return '<button class="face" type="button" data-act="face" data-s="' + s + '" aria-pressed="' + (sc === s ? "true" : "false") + '">' + face(s) + '<span>' + FACE_L[s] + '</span></button>';
+      }).join("") + '</div>' +
+      '<div class="field"><label for="ph-comment">Vuoi dirci qualcosa? <span class="opt">facoltativo</span></label><textarea id="ph-comment" rows="3">' + esc(phoneDraft.comment || "") + '</textarea></div>' +
+      '<button class="btn btn-primary btn-block" type="button" data-act="send-survey" data-id="' + t.id + '"' + (sc ? "" : " disabled") + '>Invia</button>';
+  }
+  return head + '<h2>Grazie' + (on ? ", " + on : "") + '!</h2><p>Abbiamo ricevuto il tuo voto: ' + t.survey.score + ' su 5.</p>' +
+    '<p class="small">Ti va di raccontare la tua esperienza anche su Google? Lo chiediamo a tutti i nostri clienti.</p>' +
+    '<button class="btn btn-ghost btn-block" type="button" data-act="noop">Lascia una recensione su Google</button>';
+}
+function renderPhone(){
+  var opts = S.tickets.slice().sort(function(a, b){ return b.createdAt - a.createdAt; });
+  var t = ticket(phoneSel);
+  if (!t) { var last = ticket(S.lastId); t = (last && last.owner && last.owner.cell ? last : null) || queue().filter(function(x){ return x.owner && x.owner.cell; })[0] || opts[0]; phoneSel = t ? t.id : null; }
+  var st = {attesa:"in attesa", chiamato:"chiamato", visita:"in visita", concluso:"visita conclusa"};
+  return '<section class="ph-wrap"><div class="ph-pick"><label for="ph-sel">Telefono di</label><select id="ph-sel">' +
+    opts.map(function(x){ return '<option value="' + x.id + '"' + (x.id === phoneSel ? " selected" : "") + '>N° ' + x.num + ' · ' + esc(x.pet.nome || "senza nome") + ' (' + esc(x.owner.nome || "da identificare") + ') · ' + st[x.status] + '</option>'; }).join("") +
+    '</select></div><div class="phone" aria-live="polite">' + (t ? phoneBody(t) : '<p>Nessun check-in.</p>') + '<p class="ph-foot">Clinica Veterinaria Love Pet · Via Mosca 6, Napoli</p></div></section>';
+}
+
+/* ---------- Render ed eventi ---------- */
+function route(){ var h = (location.hash || "#totem").slice(1); return ["totem", "accoglienza", "telefono"].indexOf(h) > -1 ? h : "totem"; }
+var lastKey = "";
+function render(){
+  var v = route();
+  Array.prototype.forEach.call(document.querySelectorAll(".seg a"), function(a){ a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"); });
+  $("#vhelp").textContent = HELP[v];
+  $("#view").innerHTML = v === "totem" ? renderTotem() : v === "accoglienza" ? renderBanco() : renderPhone();
+  var key = v + ":" + (v === "totem" ? (D ? D.step : "home") : "");
+  if (key !== lastKey) { lastKey = key; try { window.scrollTo(0, 0); } catch (e) {} }
+  if (v === "totem" && D && D.errors && Object.keys(D.errors).length) {
+    var el = document.querySelector(".field.err input:not([type=checkbox]), .field.err textarea, .field.err .tile, .field.err input");
+    if (el) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({block:"center"}); }
+  }
+}
+function upd(id, fn){ var t = ticket(id); if (!t) return; fn(t); save(); render(); }
+function resetDemo(b){
+  if (b.dataset.armed === "1") {
+    S = seed(); save(); D = null; stopReset(); phoneSel = null; phoneDraft = {};
+    b.dataset.armed = ""; b.textContent = "Ripristina esempio"; render(); return;
+  }
+  b.dataset.armed = "1"; b.textContent = "Tocca di nuovo per ripristinare";
+  setTimeout(function(){ if (b.dataset.armed === "1") { b.dataset.armed = ""; b.textContent = "Ripristina esempio"; } }, 4000);
+}
+function toggleSound(){
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; } }
+  if (actx && actx.state === "suspended") { try { actx.resume(); } catch (e) {} }
+  soundOn = !soundOn; if (soundOn) beep(); render();
+}
+
+var ACT = {
+  "start-appt": function(){ D = newDraft("appt"); go("appt-phone"); },
+  "start-walkin": function(){ D = newDraft("walkin"); go("flags"); },
+  "home": function(){ D = null; stopReset(); render(); },
+  "emergency": function(){ emergency(null); },
+  "flag": function(b){ D.flags = [b.dataset.id]; emergency(b.dataset.id); },
+  "noflags": function(){ go(D.mode === "appt" ? "sym" : "owner"); },
+  "back": function(){ back(); },
+  "next": function(){ next(); },
+  "set": function(b){ var f = b.dataset.f, v = b.dataset.v; if (f === "specie" || f === "sesso" || f === "ster") D.pet[f] = v; else D[f] = v; delete D.errors[f]; render(); },
+  "eta": function(b){ var d = +b.dataset.d, e = D.pet.eta; e = e == null ? (d > 0 ? 1 : 0) : Math.min(30, Math.max(0, e + d)); D.pet.eta = e; delete D.errors.eta; render(); },
+  "sym": function(b){
+    var id = b.dataset.id, s = D.sintomi;
+    if (s.indexOf(id) > -1) s = s.filter(function(x){ return x !== id; });
+    else if (id === "controllo") s = ["controllo"];
+    else s = s.filter(function(x){ return x !== "controllo"; }).concat(id);
+    D.sintomi = s; if (!needsDetail()) { D.durata = ""; D.umore = ""; }
+    delete D.errors.sintomi; render();
+  },
+  "pick-pet": function(b){ var c = client(D.clientId); D.pet = JSON.parse(JSON.stringify(c.pets[+b.dataset.i])); D.errors = {}; render(); },
+  "search": function(){ searchAppt(); },
+  "appt-ok": function(){ submit(); },
+  "appt-changes": function(){ go("flags"); },
+  "walkin-from-appt": function(){ var o = D.owner, cid = D.clientId; D = newDraft("walkin"); D.owner = o; D.clientId = cid; go("flags"); },
+  "goto": function(b){ go(b.dataset.step); },
+  "submit": function(){ submit(); },
+  "see-phone": function(){ phoneSel = D ? D.ticketId : null; phoneDraft = {}; D = null; stopReset(); location.hash = "#telefono"; },
+  "call": function(b){ upd(b.dataset.id, function(t){ t.status = "chiamato"; t.calledAt = now(); }); },
+  "start": function(b){ upd(b.dataset.id, function(t){ t.status = "visita"; t.startedAt = now(); t.ack = true; t.levelConfirmed = true; }); },
+  "end": function(b){ upd(b.dataset.id, function(t){ t.status = "concluso"; t.endedAt = now(); }); },
+  "level": function(b){ upd(b.dataset.id, function(t){ t.level = b.dataset.l; t.levelConfirmed = true; t.ack = true; }); },
+  "confirm": function(b){ upd(b.dataset.id, function(t){ t.levelConfirmed = true; }); },
+  "ack": function(b){ upd(b.dataset.id, function(t){ t.ack = true; }); },
+  "seen": function(b){ upd(b.dataset.id, function(t){ t.peggioraSeen = true; }); },
+  "sound": function(){ toggleSound(); },
+  "worse": function(b){ upd(b.dataset.id, function(t){ t.peggiora = true; t.peggioraAt = now(); t.peggioraSeen = false; }); },
+  "face": function(b){ phoneDraft.score = +b.dataset.s; render(); },
+  "send-survey": function(b){ if (!phoneDraft.score) return; upd(b.dataset.id, function(t){ t.survey = {score:phoneDraft.score, comment:(phoneDraft.comment || "").trim(), at:now()}; }); phoneDraft = {}; render(); },
+  "noop": function(b){ b.textContent = "Nella versione finale si apre la scheda Google della clinica"; },
+  "reset": function(b){ resetDemo(b); }
+};
+document.addEventListener("click", function(e){
+  var b = e.target.closest("[data-act]");
+  if (!b || b.disabled) return;
+  var fn = ACT[b.dataset.act];
+  if (fn) { e.preventDefault(); fn(b); }
+});
+document.addEventListener("input", function(e){
+  var el = e.target;
+  if (el.dataset.k && D) {
+    D.owner[el.dataset.k] = el.value;
+    if (D.errors[el.dataset.k]) { delete D.errors[el.dataset.k]; var f = el.closest(".field"); if (f) { f.classList.remove("err"); var m = f.querySelector(".err-msg"); if (m) m.remove(); } }
+    if (el.dataset.k === "cell") {
+      var n = norm(el.value);
+      var c = n.length >= 9 ? S.clients.filter(function(x){ return x.cell === n; })[0] : null;
+      if (c && D.clientId !== c.id) {
+        D.clientId = c.id;
+        D.owner = {nome:c.nome, cognome:c.cognome, cell:el.value, email:c.email, indirizzo:c.indirizzo};
+        render();
+      }
+    }
+  } else if (el.dataset.pk && D) { D.pet[el.dataset.pk] = el.value; }
+  else if (el.dataset.dk && D) { D[el.dataset.dk] = el.value; }
+  else if (el.dataset.ak && D) { D.acell = el.value; }
+  else if (el.id === "ph-comment") { phoneDraft.comment = el.value; }
+});
+document.addEventListener("change", function(e){
+  if (e.target.id === "f-privacy" && D) { D.privacy = e.target.checked; if (D.privacy && D.errors.privacy) { delete D.errors.privacy; render(); } }
+  if (e.target.id === "ph-sel") { phoneSel = e.target.value; phoneDraft = {}; render(); }
+});
+document.addEventListener("keydown", function(e){
+  if (e.key === "Enter" && e.target.id === "f-acell") { e.preventDefault(); searchAppt(); }
+});
+window.addEventListener("hashchange", render);
+window.addEventListener("storage", function(e){
+  if (e.key !== KEY) return;
+  var s = load(); if (!s) return;
+  S = s;
+  var v = route(), a = document.activeElement;
+  if (v === "totem" && D && D.step !== "done") return;
+  if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && $("#view").contains(a)) return;
+  render();
+});
+setInterval(function(){
+  var v = route(), a = document.activeElement;
+  if (v === "totem") return;
+  if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && $("#view").contains(a)) return;
+  render();
+}, 15000);
+render();
+})();
+</script>
